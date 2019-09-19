@@ -40,8 +40,9 @@ class GR implements gi.GitPullRequest {
 	title: string;
 	url: string;
 	workItemRefs: VSSInterfaces.ResourceRef[];
+	CommitsCriteria: CommitsCriteria = new CommitsCriteria;
 }
-class GSC implements gi.GitPullRequestSearchCriteria  {
+class GSC implements gi.GitPullRequestSearchCriteria {
 	creatorId?: string;
 	includeLinks?: boolean;
 	repositoryId?: string;
@@ -50,6 +51,10 @@ class GSC implements gi.GitPullRequestSearchCriteria  {
 	sourceRepositoryId?: string;
 	status?: gi.PullRequestStatus;
 	targetRefName?: string;
+}
+
+class CommitsCriteria implements gi.GitQueryCommitsCriteria {
+	includeWorkItems: boolean;
 }
 
 class completionOptions implements gi.GitPullRequestCompletionOptions {
@@ -64,7 +69,7 @@ export class PullRequest extends codedBase.CodeBase<codedBase.CodeArguments, voi
 	protected description = "Create a pull request";
 
 	protected getHelpArgs(): string[] {
-		return ["project", "repositoryname", 'source', 'target', 'title', 'autocomplete', 'mergemethod',  'deletesourcebranch'];
+		return ["project", "repositoryname", 'source', 'target', 'title', 'autocomplete', 'mergemethod', 'deletesourcebranch'];
 	}
 
 	public async exec(): Promise<any> {
@@ -128,6 +133,8 @@ export class PullRequest extends codedBase.CodeBase<codedBase.CodeArguments, voi
 		}
 
 		newPullrequest.title = myBranchComment;
+		newPullrequest.CommitsCriteria = new CommitsCriteria;
+		newPullrequest.CommitsCriteria.includeWorkItems = true;
 
 		//Creating the request
 		if (!autoComplete)
@@ -139,8 +146,7 @@ export class PullRequest extends codedBase.CodeBase<codedBase.CodeArguments, voi
 			newPullrequest.completionOptions = new completionOptions
 			newPullrequest.completionOptions.deleteSourceBranch = true
 
-			if (mergeMethod < 1 && mergeMethod > 4)
-			{
+			if (mergeMethod < 1 && mergeMethod > 4) {
 				errLog('Merge Method ' + mergeMethod + ' is not valid, should be one of 1 (NoFastForward),2 (Squash),3 (Rebase),4 (RebaseMerge)');
 				process.exit(1);
 			}
@@ -160,8 +166,8 @@ export class PullRequest extends codedBase.CodeBase<codedBase.CodeArguments, voi
 		trace.info('Title                 : %s', data.title);
 		trace.info('id                    : %s', data.pullRequestId);
 		if (data.autoCompleteSetBy)
-		trace.info('AutoCompleteSetBy     : %s', data.autoCompleteSetBy.displayName);
+			trace.info('AutoCompleteSetBy     : %s', data.autoCompleteSetBy.displayName);
 		if (data.completionOptions && data.completionOptions.deleteSourceBranch)
-	    trace.info('Delete Source Branch  : %s', data.completionOptions.deleteSourceBranch);
+			trace.info('Delete Source Branch  : %s', data.completionOptions.deleteSourceBranch);
 	}
 };
